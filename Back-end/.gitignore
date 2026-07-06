@@ -1,0 +1,11 @@
+.env
+target/
+*.jar
+*.class
+.DS_Store
+Thumbs.db
+*.log
+logs/
+.idea/
+*.iml
+.vscode/

@@ -1,0 +1,46 @@
+# ========================
+# Archivos de entorno (SECRETOS - NO subir)
+# ========================
+.env
+.env.local
+.env.production
+
+# ========================
+# Java / Maven (Back-end)
+# ========================
+target/
+*.jar
+*.class
+*.iml
+.idea/
+
+# ========================
+# Logs y archivos de texto generados
+# ========================
+*.log
+backend_logs.txt
+backend_logs_ascii.txt
+
+# ========================
+# Node.js / Next.js (Front-end)
+# ========================
+node_modules/
+.next/
+dist/
+build/
+out/
+
+# ========================
+# Sistema operativo
+# ========================
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ========================
+# IDEs y editores
+# ========================
+.idea/
+.vscode/
+*.suo
+*.user

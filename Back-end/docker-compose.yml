@@ -1,0 +1,84 @@
+version: '3.8'
+
+services:
+
+  # ─── Base de datos MySQL ───────────────────────────────────────
+  db:
+    image: mysql:8.0
+    container_name: vinilos_db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-rootpass}
+      MYSQL_DATABASE: ${DB_NAME:-vinilos_db}
+      MYSQL_USER: ${DB_USER:-vinilos_user}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-vinilos_pass}
+    ports:
+      - "3308:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - vinilos_net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost",
+             "-u", "root", "-p${DB_ROOT_PASSWORD:-rootpass}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # ─── Backend Spring Boot ──────────────────────────────────────
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: vinilos_backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_started
+    environment:
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_NAME: ${DB_NAME:-vinilos_db}
+      DB_USER: ${DB_USER:-vinilos_user}
+      DB_PASSWORD: ${DB_PASSWORD:-vinilos_pass}
+      JWT_SECRET: ${JWT_SECRET:-VinylStoreSecretKey2024SuperSecureAndLongEnoughForHS512AlgorithmRequirement}
+      JWT_EXPIRATION: ${JWT_EXPIRATION:-86400000}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173,http://localhost:3000}
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prod}
+      PORT: 8080
+      RABBITMQ_HOST: rabbitmq
+    ports:
+      - "${BACKEND_PORT:-8080}:8080"
+    networks:
+      - vinilos_net
+    healthcheck:
+      test: ["CMD-SHELL",
+             "wget -q --spider http://localhost:8080/api/v3/api-docs || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # ─── RabbitMQ ──────────────────────────────────────────────────
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: vinilos_rabbitmq
+    restart: unless-stopped
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - vinilos_net
+
+
+# ─── Volúmenes y redes ────────────────────────────────────────
+volumes:
+  mysql_data:
+    driver: local
+
+networks:
+  vinilos_net:
+    driver: bridge
