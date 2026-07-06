@@ -42,9 +42,18 @@ export function LoginPage({ onNavigateToRegister, onLoginSuccess }: LoginPagePro
       setUser(user);
       onLoginSuccess();
     } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { message?: string } } })
-        ?.response?.data?.message;
-      setServerError(msg || 'Credenciales incorrectas. Inténtalo de nuevo.');
+      const axiosErr = err as { response?: { data?: { message?: string }; status?: number }; message?: string; code?: string };
+      const backendMsg = axiosErr?.response?.data?.message;
+      const status = axiosErr?.response?.status;
+      const networkMsg = axiosErr?.message;
+      const code = axiosErr?.code;
+      if (backendMsg) {
+        setServerError(`Error ${status}: ${backendMsg}`);
+      } else if (code === 'ERR_NETWORK' || networkMsg?.includes('Network Error')) {
+        setServerError('❌ No se pudo conectar al servidor. Verifica que el backend esté activo y que VITE_API_URL esté configurado en Vercel.');
+      } else {
+        setServerError(`Error: ${networkMsg || 'Inténtalo de nuevo.'}`);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -68,9 +77,18 @@ export function LoginPage({ onNavigateToRegister, onLoginSuccess }: LoginPagePro
         setUser(user);
         onLoginSuccess();
       } catch (err: unknown) {
-        const msg = (err as { response?: { data?: { message?: string } } })
-          ?.response?.data?.message;
-        setServerError(msg || 'Error al iniciar sesión con Google.');
+        const axiosErr = err as { response?: { data?: { message?: string }; status?: number }; message?: string; code?: string };
+        const backendMsg = axiosErr?.response?.data?.message;
+        const status = axiosErr?.response?.status;
+        const networkMsg = axiosErr?.message;
+        const code = axiosErr?.code;
+        if (backendMsg) {
+          setServerError(`Error ${status}: ${backendMsg}`);
+        } else if (code === 'ERR_NETWORK' || networkMsg?.includes('Network Error')) {
+          setServerError('❌ No se pudo conectar al servidor. Verifica que VITE_API_URL esté configurado en Vercel.');
+        } else {
+          setServerError(`Error con Google: ${networkMsg || 'Inténtalo de nuevo.'}`);
+        }
       } finally {
         setIsGoogleLoading(false);
       }
