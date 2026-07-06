@@ -32,6 +32,13 @@ spring:
     init:
       mode: never   # En producción NO ejecutar scripts automáticamente
 
+  rabbitmq:
+    host: ${RABBITMQ_HOST}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USER}
+    password: ${RABBITMQ_PASSWORD}
+    virtual-host: ${RABBITMQ_VHOST:/}
+
 app:
   jwt:
     secret: ${JWT_SECRET}
